@@ -1,14 +1,26 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from "./config";
+import axios from "axios";
 
 function App() {
+
+  const [totalDonations, setTotalDonations] = useState("0");
+  const [totalFundUsage, setTotalFundUsage] = useState("0");
+  const [remainingBalance, setRemainingBalance] = useState("0");
+
+  const [campaigns, setCampaigns] = useState([]);
+  const [campaignTitle, setCampaignTitle] = useState("");
+  const [campaignDescription, setCampaignDescription] = useState("");
+  const [selectedCampaign, setSelectedCampaign] = useState("");
 
   const [walletAddress, setWalletAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState("");
+
   const [donations, setDonations] = useState([]);
   const [purpose, setPurpose] = useState("");
+
   const [usageAmount, setUsageAmount] = useState("");
   const [fundUsages, setFundUsages] = useState([]);
 
@@ -96,9 +108,17 @@ function App() {
         signer
       );
 
-      const tx = await contract.donate({
-        value: ethers.parseEther(amount),
-      });
+      if (!selectedCampaign) {
+  alert("Select a campaign");
+  return;
+}
+
+const tx = await contract.donate(
+  selectedCampaign,
+  {
+    value: ethers.parseEther(amount),
+  }
+);
 
       setStatus("Transaction pending...");
 
@@ -168,9 +188,109 @@ Transaction Hash: ${tx.hash}`);
   }
 }
 
+async function loadCampaigns() {
+
+  try {
+
+    const response = await axios.get(
+      "http://localhost:8080/campaigns"
+    );
+
+    setCampaigns(response.data);
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function createCampaign() {
+
+  try {
+
+    if (!campaignTitle || !campaignDescription) {
+      alert("Fill all fields");
+      return;
+    }
+
+    await axios.post(
+      "http://localhost:8080/campaigns",
+      {
+        title: campaignTitle,
+        description: campaignDescription,
+      }
+    );
+
+    setCampaignTitle("");
+    setCampaignDescription("");
+
+    await loadCampaigns();
+
+    setStatus("Campaign created");
+
+  } catch (error) {
+
+    console.error(error);
+
+    setStatus("Failed to create campaign");
+  }
+}
+
+function getCampaignTitle(id) {
+
+  const campaign = campaigns.find(
+    (c) => c.id === Number(id)
+  );
+
+  return campaign
+    ? campaign.title
+    : "Unknown Campaign";
+}
+
+async function loadStatistics() {
+
+  try {
+
+    if (!window.ethereum) return;
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+
+    const contract = new ethers.Contract(
+      CONTRACT_ADDRESS,
+      CONTRACT_ABI,
+      provider
+    );
+
+    const donations =
+      await contract.getTotalDonations();
+
+    const usages =
+      await contract.getTotalFundUsage();
+
+    const balance =
+      await contract.getRemainingBalance();
+
+    setTotalDonations(
+      ethers.formatEther(donations)
+    );
+
+    setTotalFundUsage(
+      ethers.formatEther(usages)
+    );
+
+    setRemainingBalance(
+      ethers.formatEther(balance)
+    );
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
   useEffect(() => {
     loadDonations();
     loadFundUsages();
+    loadCampaigns();
+    loadStatistics();
   }, []);
 
   return (
@@ -183,6 +303,49 @@ Transaction Hash: ${tx.hash}`);
 
       <h1>GiveBlock</h1>
 
+
+      <hr />
+
+<h2>Transparency Dashboard</h2>
+
+<div style={{
+  display: "flex",
+  gap: "20px",
+  marginBottom: "20px"
+}}>
+
+  <div style={{
+    border: "1px solid gray",
+    padding: "15px",
+    borderRadius: "8px",
+    width: "200px"
+  }}>
+    <h3>Total Donations</h3>
+    <p>{totalDonations} ETH</p>
+  </div>
+
+  <div style={{
+    border: "1px solid gray",
+    padding: "15px",
+    borderRadius: "8px",
+    width: "200px"
+  }}>
+    <h3>Total Fund Usage</h3>
+    <p>{totalFundUsage} ETH</p>
+  </div>
+
+  <div style={{
+    border: "1px solid gray",
+    padding: "15px",
+    borderRadius: "8px",
+    width: "200px"
+  }}>
+    <h3>Remaining Balance</h3>
+    <p>{remainingBalance} ETH</p>
+  </div>
+
+</div>
+      
       <button onClick={connectWallet}>
         Connect MetaMask
       </button>
@@ -194,6 +357,33 @@ Transaction Hash: ${tx.hash}`);
       <hr />
 
       <h2>Donate</h2>
+
+      <select
+  value={selectedCampaign}
+  onChange={(e) => setSelectedCampaign(e.target.value)}
+  style={{
+    padding: "10px",
+    width: "220px",
+    marginBottom: "10px"
+  }}
+>
+
+  <option value="">
+    Select Campaign
+  </option>
+
+  {campaigns.map((campaign) => (
+    <option
+      key={campaign.id}
+      value={campaign.id}
+    >
+      {campaign.title}
+    </option>
+  ))}
+
+</select>
+
+<br /><br />
 
       <input
         type="text"
@@ -213,6 +403,9 @@ Transaction Hash: ${tx.hash}`);
       <button onClick={donate}>
         Donate
       </button>
+
+    
+      <p>{status}</p>
 
     <hr />
 
@@ -249,7 +442,72 @@ Transaction Hash: ${tx.hash}`);
   Record Fund Usage
 </button>
 
-      <p>{status}</p>
+<hr />
+
+<h2>Create Campaign</h2>
+
+<input
+  type="text"
+  placeholder="Campaign title"
+  value={campaignTitle}
+  onChange={(e) => setCampaignTitle(e.target.value)}
+  style={{
+    padding: "10px",
+    width: "300px",
+    marginBottom: "10px"
+  }}
+/>
+
+<br />
+
+<textarea
+  placeholder="Campaign description"
+  value={campaignDescription}
+  onChange={(e) => setCampaignDescription(e.target.value)}
+  style={{
+    padding: "10px",
+    width: "300px",
+    height: "100px"
+  }}
+/>
+
+<br /><br />
+
+<button onClick={createCampaign}>
+  Create Campaign
+</button>
+
+<hr />
+
+<h2>Campaigns</h2>
+
+{campaigns.length === 0 && (
+  <p>No campaigns yet</p>
+)}
+
+{campaigns.map((campaign) => (
+
+  <div
+    key={campaign.id}
+    style={{
+      border: "1px solid gray",
+      padding: "15px",
+      marginBottom: "10px",
+      borderRadius: "8px"
+    }}
+  >
+
+    <h3>{campaign.title}</h3>
+
+    <p>{campaign.description}</p>
+
+    <small>
+      Created at: {campaign.created_at}
+    </small>
+
+  </div>
+))}
+
 
       <hr />
 
@@ -281,6 +539,12 @@ Transaction Hash: ${tx.hash}`);
             <strong>Amount:</strong>
             {" "}
             {ethers.formatEther(donation.amount)} ETH
+          </p>
+
+          <p>
+            <strong>Campaign:</strong>
+            {" "}
+            {getCampaignTitle(donation.campaignId)}
           </p>
 
           <p>

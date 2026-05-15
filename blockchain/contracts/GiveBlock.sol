@@ -10,11 +10,15 @@ contract GiveBlock {
     }
 
     modifier onlyAdmin() {
-        require(msg.sender == admin, "Only admin can perform this action");
+        require(
+            msg.sender == admin,
+            "Only admin can perform this action"
+        );
         _;
     }
 
     struct Donation {
+        uint256 campaignId;
         address donor;
         uint256 amount;
         uint256 timestamp;
@@ -31,6 +35,7 @@ contract GiveBlock {
     FundUsage[] public fundUsages;
 
     event DonationMade(
+        uint256 campaignId,
         address indexed donor,
         uint256 amount,
         uint256 timestamp
@@ -42,12 +47,21 @@ contract GiveBlock {
         uint256 timestamp
     );
 
-    function donate() public payable {
+    function donate(
+        uint256 _campaignId
+    )
+        public
+        payable
+    {
 
-        require(msg.value > 0, "Donation must be greater than 0");
+        require(
+            msg.value > 0,
+            "Donation must be greater than 0"
+        );
 
         donations.push(
             Donation({
+                campaignId: _campaignId,
                 donor: msg.sender,
                 amount: msg.value,
                 timestamp: block.timestamp
@@ -55,6 +69,7 @@ contract GiveBlock {
         );
 
         emit DonationMade(
+            _campaignId,
             msg.sender,
             msg.value,
             block.timestamp
@@ -69,7 +84,10 @@ contract GiveBlock {
         onlyAdmin
     {
 
-        require(_amount > 0, "Amount must be greater than 0");
+        require(
+            _amount > 0,
+            "Amount must be greater than 0"
+        );
 
         fundUsages.push(
             FundUsage({
@@ -101,6 +119,44 @@ contract GiveBlock {
     {
         return fundUsages;
     }
+    
+    function getTotalDonations()
+    public
+    view
+    returns (uint256)
+{
+    uint256 total = 0;
+
+    for (uint256 i = 0; i < donations.length; i++) {
+        total += donations[i].amount;
+    }
+
+    return total;
+}
+
+function getTotalFundUsage()
+    public
+    view
+    returns (uint256)
+{
+    uint256 total = 0;
+
+    for (uint256 i = 0; i < fundUsages.length; i++) {
+        total += fundUsages[i].amount;
+    }
+
+    return total;
+}
+
+function getRemainingBalance()
+    public
+    view
+    returns (uint256)
+{
+    return
+        getTotalDonations() -
+        getTotalFundUsage();
+}
 
     function getDonationCount()
         public

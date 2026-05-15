@@ -1,7 +1,7 @@
 export const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 export const CONTRACT_ABI = [
-  {
+        {
       "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
@@ -9,6 +9,12 @@ export const CONTRACT_ABI = [
     {
       "anonymous": false,
       "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "campaignId",
+          "type": "uint256"
+        },
         {
           "indexed": true,
           "internalType": "address",
@@ -70,7 +76,13 @@ export const CONTRACT_ABI = [
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_campaignId",
+          "type": "uint256"
+        }
+      ],
       "name": "donate",
       "outputs": [],
       "stateMutability": "payable",
@@ -86,6 +98,11 @@ export const CONTRACT_ABI = [
       ],
       "name": "donations",
       "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "campaignId",
+          "type": "uint256"
+        },
         {
           "internalType": "address",
           "name": "donor",
@@ -154,6 +171,11 @@ export const CONTRACT_ABI = [
         {
           "components": [
             {
+              "internalType": "uint256",
+              "name": "campaignId",
+              "type": "uint256"
+            },
+            {
               "internalType": "address",
               "name": "donor",
               "type": "address"
@@ -215,6 +237,45 @@ export const CONTRACT_ABI = [
           "internalType": "struct GiveBlock.FundUsage[]",
           "name": "",
           "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getRemainingBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getTotalDonations",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getTotalFundUsage",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",

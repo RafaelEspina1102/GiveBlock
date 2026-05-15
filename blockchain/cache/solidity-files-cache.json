@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/home/shogunex/LStorage/Documents/Programming/GiveBlock/blockchain/contracts/GiveBlock.sol": {
-      "lastModificationDate": 1778780190791,
-      "contentHash": "1cd38845a21bf5ebf27de6a4756b5da3",
+      "lastModificationDate": 1778820142514,
+      "contentHash": "76c1126b8a7dc62f4d73dc9aced0c6d5",
       "sourceName": "contracts/GiveBlock.sol",
       "solcConfig": {
         "version": "0.8.28",
