@@ -2,6 +2,25 @@
 
 GiveBlock: Blockchain-Based Transparent Charity Fund Management System” aims to demonstrate how blockchain technology can be used to track and record charity donations and fund usage in a transparent and verifiable manner.
 
+## Metamask
+Install Metamask for the application to work | https://metamask.io/
+
+Add new network manually (settings)
+```bash
+| Setting         | Value                                          |
+| --------------- | ---------------------------------------------- |
+| Network Name    | Hardhat Local                                  |
+| RPC URL         | http://127.0.0.1:8545                          |
+| Chain ID        | 31337                                          |
+| Currency Symbol | ETH                                            |
+```
+Import private key given by ```npx hardhat node```
+```bash
+  Account #0: 0x...
+  Private Key: 0x...
+```
+Account #0 is the only admin account. Using Account #1-19 is a normal user
+
 ## Deployment
 
 for both Frontend and Blockchain folder
